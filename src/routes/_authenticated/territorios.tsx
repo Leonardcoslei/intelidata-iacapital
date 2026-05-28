@@ -352,8 +352,8 @@ function TerritoriosPage() {
                 </div>
               ))}
               {filtrados.map((t) => (
-                <>
-                  <div key={t.nome + "-l"} className="flex items-center text-xs font-medium pr-2 truncate">
+                <Fragment key={t.nome}>
+                  <div className="flex items-center text-xs font-medium pr-2 truncate">
                     {t.nome}
                   </div>
                   {(["expansao","saturacao","absorcao","pressao","liquidez","narrativa"] as const).map((k) => (
@@ -364,7 +364,7 @@ function TerritoriosPage() {
                       {t[k]}
                     </div>
                   ))}
-                </>
+                </Fragment>
               ))}
             </div>
           </div>
