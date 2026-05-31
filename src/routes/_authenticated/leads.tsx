@@ -49,7 +49,7 @@ type Lead = {
   aderencia: number; // % aderência territorial
 };
 
-const leads: Lead[] = [
+const initialLeads: Lead[] = [
   { id: "L-1042", nome: "Ana Pereira", origem: "Instagram", bairro: "Campo Grande", emp: "Vista Park", tipologia: "2Q + Suíte", renda: 7.8, profissao: "Servidora Pública", score: 92, temp: "quente", perfil: "familiar", stage: "Visita", ultima: "há 2h", aderencia: 94 },
   { id: "L-1041", nome: "Carlos Souza", origem: "Stand", bairro: "Madureira", emp: "Estação Madureira", tipologia: "Studio", renda: 12.4, profissao: "Engenheiro", score: 89, temp: "quente", perfil: "investidor", stage: "Proposta", ultima: "há 5h", aderencia: 88 },
   { id: "L-1039", nome: "Beatriz Lima", origem: "Indicação", bairro: "Bangu", emp: "Bangu Plaza", tipologia: "2Q", renda: 5.2, profissao: "Professora", score: 84, temp: "quente", perfil: "primeiro_imovel", stage: "Qualificado", ultima: "ontem", aderencia: 91 },
