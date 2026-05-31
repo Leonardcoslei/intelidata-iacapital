@@ -1,15 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState, Fragment } from "react";
+import { useMemo, useState, useRef, Fragment } from "react";
+import { toast } from "sonner";
 import { PageHeader } from "@/components/page-header";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader,
+  DialogTitle, DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Search, Flame, Snowflake, ThermometerSun, TrendingUp, Users, Target,
   Phone, Mail, MessageCircle, MapPin, Briefcase, Wallet, Home, Building2,
-  AlertTriangle, Sparkles, ArrowUpRight, Clock, ChevronRight,
+  AlertTriangle, Sparkles, ArrowUpRight, Clock, ChevronRight, Upload,
+  FileSpreadsheet, Download, CheckCircle2,
 } from "lucide-react";
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
@@ -42,7 +49,7 @@ type Lead = {
   aderencia: number; // % aderência territorial
 };
 
-const leads: Lead[] = [
+const initialLeads: Lead[] = [
   { id: "L-1042", nome: "Ana Pereira", origem: "Instagram", bairro: "Campo Grande", emp: "Vista Park", tipologia: "2Q + Suíte", renda: 7.8, profissao: "Servidora Pública", score: 92, temp: "quente", perfil: "familiar", stage: "Visita", ultima: "há 2h", aderencia: 94 },
   { id: "L-1041", nome: "Carlos Souza", origem: "Stand", bairro: "Madureira", emp: "Estação Madureira", tipologia: "Studio", renda: 12.4, profissao: "Engenheiro", score: 89, temp: "quente", perfil: "investidor", stage: "Proposta", ultima: "há 5h", aderencia: 88 },
   { id: "L-1039", nome: "Beatriz Lima", origem: "Indicação", bairro: "Bangu", emp: "Bangu Plaza", tipologia: "2Q", renda: 5.2, profissao: "Professora", score: 84, temp: "quente", perfil: "primeiro_imovel", stage: "Qualificado", ultima: "ontem", aderencia: 91 },
@@ -133,12 +140,108 @@ const fmt = (n: number) => n.toLocaleString("pt-BR");
 const scoreColor = (s: number) =>
   s >= 85 ? "text-emerald-300" : s >= 70 ? "text-gold" : s >= 55 ? "text-primary" : "text-sky-300";
 
+// ---------------- CSV import ----------------
+const CSV_TEMPLATE = `nome,email,telefone,origem,bairro,empreendimento,tipologia,renda,profissao
+Maria Silva,maria@exemplo.com,21999990000,Instagram,Recreio,Recreio Boulevard,2Q + Suíte,8.5,Arquiteta
+João Costa,joao@exemplo.com,21988887777,Site,Madureira,Estação Madureira,Studio,11.2,Investidor`;
+
+function splitCsvLine(line: string): string[] {
+  const out: string[] = [];
+  let cur = "", inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') { inQ = !inQ; continue; }
+    if ((c === "," || c === ";" || c === "\t") && !inQ) { out.push(cur.trim()); cur = ""; continue; }
+    cur += c;
+  }
+  out.push(cur.trim());
+  return out;
+}
+
+function autoScore(renda: number, perfil: Perfil, aderencia: number): number {
+  const rendaScore = Math.min(40, renda * 2.2);
+  const adScore = aderencia * 0.4;
+  const perfilBonus = perfil === "investidor" ? 14 : perfil === "familiar" ? 10 : 6;
+  return Math.max(20, Math.min(99, Math.round(rendaScore + adScore + perfilBonus)));
+}
+function autoTemp(score: number): Temperatura {
+  return score >= 80 ? "quente" : score >= 60 ? "morno" : "frio";
+}
+function autoPerfil(renda: number, profissao: string): Perfil {
+  const p = profissao.toLowerCase();
+  if (renda >= 12 || /invest|trader|empres|sóci|socio/.test(p)) return "investidor";
+  if (renda < 6) return "primeiro_imovel";
+  return "familiar";
+}
+function autoAderencia(bairro: string): number {
+  const map: Record<string, number> = {
+    recreio: 94, "campo grande": 89, madureira: 86, bangu: 82, penha: 78,
+    "santa cruz": 71, irajá: 64, iraja: 64, jacarepaguá: 81, jacarepagua: 81,
+    "são cristóvão": 79, "sao cristovao": 79, piedade: 75, realengo: 77, niterói: 83, niteroi: 83,
+  };
+  return map[bairro.toLowerCase()] ?? 70;
+}
+
+function parseLeadsCsv(text: string): Lead[] {
+  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  if (lines.length < 2) return [];
+  const header = splitCsvLine(lines[0]).map((h) => h.toLowerCase());
+  const idx = (keys: string[]) => header.findIndex((h) => keys.includes(h));
+  const ix = {
+    nome: idx(["nome", "name"]),
+    email: idx(["email", "e-mail"]),
+    telefone: idx(["telefone", "phone", "celular"]),
+    origem: idx(["origem", "source", "canal"]),
+    bairro: idx(["bairro", "regiao", "região"]),
+    emp: idx(["empreendimento", "imovel", "imóvel", "produto"]),
+    tipologia: idx(["tipologia", "tipo"]),
+    renda: idx(["renda", "renda_mensal", "income"]),
+    profissao: idx(["profissao", "profissão", "ocupacao", "ocupação"]),
+  };
+  const out: Lead[] = [];
+  for (let i = 1; i < lines.length; i++) {
+    const cols = splitCsvLine(lines[i]);
+    const nome = ix.nome >= 0 ? cols[ix.nome] : "";
+    if (!nome) continue;
+    const bairro = (ix.bairro >= 0 ? cols[ix.bairro] : "") || "—";
+    const rendaRaw = ix.renda >= 0 ? cols[ix.renda] : "0";
+    const renda = Number(String(rendaRaw).replace(/\./g, "").replace(",", ".")) || 0;
+    const profissao = (ix.profissao >= 0 ? cols[ix.profissao] : "") || "—";
+    const perfil = autoPerfil(renda, profissao);
+    const aderencia = autoAderencia(bairro);
+    const score = autoScore(renda, perfil, aderencia);
+    const temp = autoTemp(score);
+    out.push({
+      id: `L-${Date.now().toString().slice(-5)}${i}`,
+      nome,
+      origem: (ix.origem >= 0 ? cols[ix.origem] : "Importação") || "Importação",
+      bairro,
+      emp: (ix.emp >= 0 ? cols[ix.emp] : "") || "A definir",
+      tipologia: (ix.tipologia >= 0 ? cols[ix.tipologia] : "") || "—",
+      renda,
+      profissao,
+      score,
+      temp,
+      perfil,
+      stage: "Novo",
+      ultima: "agora",
+      aderencia,
+    });
+  }
+  return out;
+}
+
 // ---------------- Page ----------------
 function LeadsPage() {
+  const [leads, setLeads] = useState<Lead[]>(initialLeads);
   const [query, setQuery] = useState("");
   const [filterTemp, setFilterTemp] = useState<Temperatura | "all">("all");
   const [filterPerfil, setFilterPerfil] = useState<Perfil | "all">("all");
-  const [selected, setSelected] = useState<Lead>(leads[8]);
+  const [selected, setSelected] = useState<Lead>(initialLeads[8]);
+  const [importOpen, setImportOpen] = useState(false);
+  const [csvText, setCsvText] = useState("");
+  const [preview, setPreview] = useState<Lead[]>([]);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const filtered = useMemo(() => {
     return leads.filter((l) => {
@@ -147,11 +250,11 @@ function LeadsPage() {
       if (query && !`${l.nome} ${l.bairro} ${l.emp}`.toLowerCase().includes(query.toLowerCase())) return false;
       return true;
     });
-  }, [query, filterTemp, filterPerfil]);
+  }, [leads, query, filterTemp, filterPerfil]);
 
   const kpis = [
-    { l: "Leads ativos", v: "4.218", d: "+12,4%", icon: Users, color: "text-primary" },
-    { l: "Quentes", v: "388", d: "+18%", icon: Flame, color: "text-rose-400" },
+    { l: "Leads ativos", v: fmt(4218 + (leads.length - initialLeads.length)), d: "+12,4%", icon: Users, color: "text-primary" },
+    { l: "Quentes", v: fmt(388 + leads.filter((l) => l.temp === "quente").length - initialLeads.filter((l) => l.temp === "quente").length), d: "+18%", icon: Flame, color: "text-rose-400" },
     { l: "Aderência média", v: "82%", d: "+3 pts", icon: Target, color: "text-gold" },
     { l: "Conversão proposta", v: "11,4%", d: "+1,2 pp", icon: TrendingUp, color: "text-emerald-300" },
   ];
@@ -162,15 +265,115 @@ function LeadsPage() {
   }));
   const pipelineMax = Math.max(...pipeline.map((p) => p.total));
 
+  const handleFile = async (file: File) => {
+    const text = await file.text();
+    setCsvText(text);
+    setPreview(parseLeadsCsv(text));
+  };
+  const handlePaste = (text: string) => {
+    setCsvText(text);
+    setPreview(text.trim() ? parseLeadsCsv(text) : []);
+  };
+  const confirmImport = () => {
+    if (preview.length === 0) {
+      toast.error("Nenhum lead válido encontrado no arquivo.");
+      return;
+    }
+    setLeads((prev) => [...preview, ...prev]);
+    setSelected(preview[0]);
+    toast.success(`${preview.length} leads importados`, {
+      description: "Score, temperatura e aderência calculados automaticamente.",
+    });
+    setImportOpen(false);
+    setCsvText("");
+    setPreview([]);
+    if (fileRef.current) fileRef.current.value = "";
+  };
+  const downloadTemplate = () => {
+    const blob = new Blob([CSV_TEMPLATE], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "modelo-leads.csv"; a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="p-6 lg:p-8 max-w-[1600px] mx-auto space-y-6">
       <PageHeader
         title="Leads Inteligentes"
         subtitle="Comportamento, scoring automático e aderência territorial."
         actions={
-          <Button className="bg-primary hover:bg-primary/90 gap-2">
-            <Sparkles className="h-4 w-4" /> Recalcular score
-          </Button>
+          <div className="flex gap-2">
+            <Dialog open={importOpen} onOpenChange={setImportOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="gap-2 border-border/60">
+                  <Upload className="h-4 w-4" /> Importar leads
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl glass border-border/60">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <FileSpreadsheet className="h-4 w-4 text-primary" />
+                    Importação em lote
+                  </DialogTitle>
+                  <DialogDescription>
+                    Envie um CSV/planilha. O motor calcula score, temperatura, perfil e aderência territorial automaticamente.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between rounded-md border border-border/60 bg-muted/20 p-3">
+                    <div className="text-xs text-muted-foreground">
+                      Colunas esperadas: <span className="text-foreground">nome, email, telefone, origem, bairro, empreendimento, tipologia, renda, profissao</span>
+                    </div>
+                    <Button size="sm" variant="ghost" className="gap-2" onClick={downloadTemplate}>
+                      <Download className="h-3.5 w-3.5" /> Modelo
+                    </Button>
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1.5 block">Arquivo CSV</label>
+                    <Input
+                      ref={fileRef}
+                      type="file"
+                      accept=".csv,text/csv,text/plain"
+                      onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
+                      className="bg-muted/30 border-border/60 file:text-primary file:bg-transparent file:border-0 file:text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1.5 block">Ou cole o conteúdo</label>
+                    <Textarea
+                      value={csvText}
+                      onChange={(e) => handlePaste(e.target.value)}
+                      placeholder="nome,email,telefone,bairro,renda..."
+                      className="bg-muted/30 border-border/60 font-mono text-xs h-32"
+                    />
+                  </div>
+                  {preview.length > 0 && (
+                    <div className="rounded-md border border-emerald-500/30 bg-emerald-500/5 p-3">
+                      <div className="flex items-center gap-2 text-emerald-300 text-sm">
+                        <CheckCircle2 className="h-4 w-4" />
+                        {preview.length} leads prontos para importar
+                      </div>
+                      <div className="text-[11px] text-muted-foreground mt-2 grid grid-cols-3 gap-1.5">
+                        <span>Quentes: <span className="text-rose-300">{preview.filter((l) => l.temp === "quente").length}</span></span>
+                        <span>Mornos: <span className="text-gold">{preview.filter((l) => l.temp === "morno").length}</span></span>
+                        <span>Frios: <span className="text-sky-300">{preview.filter((l) => l.temp === "frio").length}</span></span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <DialogFooter>
+                  <Button variant="ghost" onClick={() => setImportOpen(false)}>Cancelar</Button>
+                  <Button onClick={confirmImport} disabled={preview.length === 0} className="bg-primary hover:bg-primary/90 gap-2">
+                    <Sparkles className="h-4 w-4" /> Importar {preview.length || ""}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+            <Button className="bg-primary hover:bg-primary/90 gap-2">
+              <Sparkles className="h-4 w-4" /> Recalcular score
+            </Button>
+          </div>
         }
       />
 
