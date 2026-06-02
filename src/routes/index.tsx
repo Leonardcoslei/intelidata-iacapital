@@ -96,7 +96,8 @@ function Landing() {
               <p className="mt-1 text-sm text-muted-foreground">{f.desc}</p>
             </div>
           ))}
-        </div>
+          </div>
+        </section>
       </main>
     </div>
   );
