@@ -208,6 +208,7 @@ function TerritoriosPage() {
       />
 
       {/* ============ KPIs ============ */}
+      <h2 className="sr-only">Indicadores territoriais</h2>
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         {[
           { l: "Territórios", v: kpis.monitoradas, s: "monitorados" },
