@@ -265,6 +265,7 @@ function TerritoriosPage() {
       </Card>
 
       {/* ============ TABELA INTELIGENTE ============ */}
+      <h2 className="sr-only">Ranking territorial</h2>
       <Card className="mt-5 glass border-border/60 overflow-hidden">
         <div className="px-5 py-3 border-b border-border/60 flex items-center justify-between">
           <h3 className="font-semibold text-sm">Ranking territorial</h3>
