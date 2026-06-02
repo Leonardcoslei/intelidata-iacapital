@@ -375,6 +375,7 @@ function TerritoriosPage() {
       </Card>
 
       {/* ============ COMPARATIVO + EVOLUÇÃO ============ */}
+      <h2 className="sr-only">Comparativo e evolução temporal</h2>
       <div className="mt-5 grid grid-cols-1 lg:grid-cols-5 gap-5">
         <Card className="lg:col-span-3 glass border-border/60 overflow-hidden">
           <div className="px-5 py-3 border-b border-border/60 flex items-center justify-between">
