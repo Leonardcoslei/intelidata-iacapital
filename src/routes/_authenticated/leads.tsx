@@ -321,10 +321,53 @@ function LeadsPage() {
       toast.error("Nenhum lead válido encontrado no arquivo.");
       return;
     }
-    setLeads((prev) => [...preview, ...prev]);
-    setSelected(preview[0]);
-    toast.success(`${preview.length} leads importados`, {
-      description: "Score, temperatura e aderência calculados automaticamente.",
+
+    // 1) Dedupe within preview itself (later rows merge into earlier)
+    const seen = new Map<string, Lead>(); // key -> lead in deduped list
+    const deduped: Lead[] = [];
+    let intraDupes = 0;
+    for (const l of preview) {
+      const keys = leadKeys(l);
+      const hit = keys.map((k) => seen.get(k)).find(Boolean);
+      if (hit) {
+        const merged = mergeLead(hit, l);
+        Object.assign(hit, merged);
+        intraDupes++;
+      } else {
+        deduped.push(l);
+        keys.forEach((k) => seen.set(k, l));
+      }
+    }
+
+    // 2) Merge against existing leads
+    let mergedCount = 0;
+    let newCount = 0;
+    setLeads((prev) => {
+      const index = new Map<string, number>();
+      prev.forEach((l, i) => leadKeys(l).forEach((k) => index.set(k, i)));
+      const next = [...prev];
+      const fresh: Lead[] = [];
+      for (const inc of deduped) {
+        const keys = leadKeys(inc);
+        const hitIdx = keys.map((k) => index.get(k)).find((v) => v !== undefined);
+        if (hitIdx !== undefined) {
+          next[hitIdx] = mergeLead(next[hitIdx], inc);
+          mergedCount++;
+        } else {
+          fresh.push(inc);
+          newCount++;
+          keys.forEach((k) => index.set(k, next.length + fresh.length - 1));
+        }
+      }
+      return [...fresh, ...next];
+    });
+
+    setSelected(deduped[0]);
+    const parts = [`${newCount} novos`];
+    if (mergedCount) parts.push(`${mergedCount} mesclados`);
+    if (intraDupes) parts.push(`${intraDupes} duplicatas no arquivo`);
+    toast.success(`Importação concluída — ${parts.join(" · ")}`, {
+      description: "Dedupe por email/telefone. Score e estágio preservados/atualizados.",
     });
     setImportOpen(false);
     setCsvText("");
