@@ -187,6 +187,7 @@ function DashboardPage() {
         </Card>
       </div>
 
+      <h2 className="sr-only">Mapa de calor e alertas</h2>
       <div className="mt-6 grid grid-cols-1 xl:grid-cols-3 gap-4">
         <Card className="xl:col-span-2 p-5 glass border-border/60">
           <div className="flex items-center justify-between mb-4">
