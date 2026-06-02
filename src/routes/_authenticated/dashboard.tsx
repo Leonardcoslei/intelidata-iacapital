@@ -111,9 +111,12 @@ function DashboardPage() {
         }
       />
 
+      <h2 className="sr-only">Indicadores chave</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {kpis.map((k) => <KpiCard key={k.label} kpi={k} />)}
       </div>
+
+      <h2 className="sr-only">Absorção e ranking territorial</h2>
 
       <div className="mt-6 grid grid-cols-1 xl:grid-cols-3 gap-4">
         <Card className="xl:col-span-2 p-5 glass border-border/60">
