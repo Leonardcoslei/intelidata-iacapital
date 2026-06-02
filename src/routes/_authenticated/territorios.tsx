@@ -332,6 +332,7 @@ function TerritoriosPage() {
       </Card>
 
       {/* ============ HEATMAP ============ */}
+      <h2 className="sr-only">Heatmap multifatorial</h2>
       <Card className="mt-5 glass border-border/60 overflow-hidden">
         <div className="px-5 py-3 border-b border-border/60 flex items-center justify-between">
           <div className="flex items-center gap-2">
