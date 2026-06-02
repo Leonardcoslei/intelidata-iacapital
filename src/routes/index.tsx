@@ -82,7 +82,9 @@ function Landing() {
           </div>
         </div>
 
-        <div className="mt-24 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <section aria-labelledby="recursos-heading" className="mt-24">
+          <h2 id="recursos-heading" className="sr-only">Recursos da plataforma</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
             { icon: MapPin, title: "Inteligência territorial", desc: "Heatmaps, ranking de regiões e leitura urbana em tempo real." },
             { icon: BarChart3, title: "Absorção & scoring", desc: "Score de liquidez, valorização e risco por empreendimento." },
