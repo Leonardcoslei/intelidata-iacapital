@@ -10,6 +10,23 @@ import { toast } from "sonner";
 import { Activity, Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/login")({
+  head: () => ({
+    meta: [
+      { title: "Entrar — Motor de Inteligência" },
+      {
+        name: "description",
+        content:
+          "Acesse sua central de inteligência territorial do mercado imobiliário do Rio de Janeiro.",
+      },
+      { property: "og:title", content: "Entrar — Motor de Inteligência" },
+      {
+        property: "og:description",
+        content: "Login na plataforma analítica imobiliária do Rio de Janeiro.",
+      },
+      { property: "og:url", content: "/login" },
+    ],
+    links: [{ rel: "canonical", href: "/login" }],
+  }),
   component: LoginPage,
 });
 
