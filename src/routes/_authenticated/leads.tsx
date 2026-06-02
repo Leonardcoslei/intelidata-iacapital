@@ -266,6 +266,8 @@ function parseLeadsCsv(text: string): Lead[] {
       stage: "Novo",
       ultima: "agora",
       aderencia,
+      email: ix.email >= 0 ? cols[ix.email] : "",
+      telefone: ix.telefone >= 0 ? cols[ix.telefone] : "",
     });
   }
   return out;
