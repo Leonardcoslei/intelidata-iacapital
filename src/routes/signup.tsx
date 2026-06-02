@@ -10,6 +10,24 @@ import { toast } from "sonner";
 import { Activity, Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/signup")({
+  head: () => ({
+    meta: [
+      { title: "Criar conta — Motor de Inteligência" },
+      {
+        name: "description",
+        content:
+          "Crie sua conta e acesse análises territoriais, scoring de leads e absorção do mercado imobiliário do Rio.",
+      },
+      { property: "og:title", content: "Criar conta — Motor de Inteligência" },
+      {
+        property: "og:description",
+        content:
+          "Cadastre-se na plataforma de inteligência imobiliária para o mercado do Rio de Janeiro.",
+      },
+      { property: "og:url", content: "/signup" },
+    ],
+    links: [{ rel: "canonical", href: "/signup" }],
+  }),
   component: SignupPage,
 });
 
