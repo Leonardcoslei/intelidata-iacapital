@@ -243,6 +243,7 @@ function DashboardPage() {
         </Card>
       </div>
 
+      <h2 className="sr-only">Regiões em destaque e timeline</h2>
       <div className="mt-6 grid grid-cols-1 xl:grid-cols-3 gap-4">
         <Card className="xl:col-span-2 p-5 glass border-border/60">
           <h3 className="font-semibold mb-4">Regiões em destaque</h3>
