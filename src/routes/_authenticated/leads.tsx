@@ -47,7 +47,47 @@ type Lead = {
   stage: Stage;
   ultima: string;
   aderencia: number; // % aderência territorial
+  email?: string;
+  telefone?: string;
 };
+
+// Normalize for dedup keys
+const normEmail = (s?: string) => (s || "").trim().toLowerCase();
+const normPhone = (s?: string) => (s || "").replace(/\D/g, "");
+const leadKeys = (l: Lead) => {
+  const k: string[] = [];
+  const e = normEmail(l.email);
+  const p = normPhone(l.telefone);
+  if (e) k.push(`e:${e}`);
+  if (p.length >= 8) k.push(`p:${p.slice(-11)}`);
+  return k;
+};
+
+// Stage progression: keep the furthest stage already reached
+const stageOrder: Stage[] = ["Novo", "Qualificado", "Visita", "Proposta", "Negociação", "Fechado"];
+function mergeLead(existing: Lead, incoming: Lead): Lead {
+  const pick = <T,>(a: T, b: T, isEmpty: (v: T) => boolean) => (isEmpty(a) ? b : a);
+  const emptyStr = (v: string) => !v || v === "—" || v === "A definir";
+  const merged: Lead = {
+    ...existing,
+    nome: pick(existing.nome, incoming.nome, emptyStr),
+    origem: existing.origem ? `${existing.origem} + ${incoming.origem}`.slice(0, 60) : incoming.origem,
+    bairro: pick(existing.bairro, incoming.bairro, emptyStr),
+    emp: pick(existing.emp, incoming.emp, emptyStr),
+    tipologia: pick(existing.tipologia, incoming.tipologia, emptyStr),
+    renda: Math.max(existing.renda || 0, incoming.renda || 0),
+    profissao: pick(existing.profissao, incoming.profissao, emptyStr),
+    email: normEmail(existing.email) || normEmail(incoming.email),
+    telefone: normPhone(existing.telefone) ? existing.telefone : incoming.telefone,
+    aderencia: Math.max(existing.aderencia, incoming.aderencia),
+    stage: stageOrder.indexOf(incoming.stage) > stageOrder.indexOf(existing.stage) ? incoming.stage : existing.stage,
+    ultima: "agora",
+  };
+  // Recompute score/temp from merged data
+  merged.score = autoScore(merged.renda, merged.perfil, merged.aderencia);
+  merged.temp = autoTemp(merged.score);
+  return merged;
+}
 
 const initialLeads: Lead[] = [
   { id: "L-1042", nome: "Ana Pereira", origem: "Instagram", bairro: "Campo Grande", emp: "Vista Park", tipologia: "2Q + Suíte", renda: 7.8, profissao: "Servidora Pública", score: 92, temp: "quente", perfil: "familiar", stage: "Visita", ultima: "há 2h", aderencia: 94 },
