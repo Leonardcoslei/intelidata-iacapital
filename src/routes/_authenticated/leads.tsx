@@ -47,7 +47,47 @@ type Lead = {
   stage: Stage;
   ultima: string;
   aderencia: number; // % aderência territorial
+  email?: string;
+  telefone?: string;
 };
+
+// Normalize for dedup keys
+const normEmail = (s?: string) => (s || "").trim().toLowerCase();
+const normPhone = (s?: string) => (s || "").replace(/\D/g, "");
+const leadKeys = (l: Lead) => {
+  const k: string[] = [];
+  const e = normEmail(l.email);
+  const p = normPhone(l.telefone);
+  if (e) k.push(`e:${e}`);
+  if (p.length >= 8) k.push(`p:${p.slice(-11)}`);
+  return k;
+};
+
+// Stage progression: keep the furthest stage already reached
+const stageOrder: Stage[] = ["Novo", "Qualificado", "Visita", "Proposta", "Negociação", "Fechado"];
+function mergeLead(existing: Lead, incoming: Lead): Lead {
+  const pick = <T,>(a: T, b: T, isEmpty: (v: T) => boolean) => (isEmpty(a) ? b : a);
+  const emptyStr = (v: string) => !v || v === "—" || v === "A definir";
+  const merged: Lead = {
+    ...existing,
+    nome: pick(existing.nome, incoming.nome, emptyStr),
+    origem: existing.origem ? `${existing.origem} + ${incoming.origem}`.slice(0, 60) : incoming.origem,
+    bairro: pick(existing.bairro, incoming.bairro, emptyStr),
+    emp: pick(existing.emp, incoming.emp, emptyStr),
+    tipologia: pick(existing.tipologia, incoming.tipologia, emptyStr),
+    renda: Math.max(existing.renda || 0, incoming.renda || 0),
+    profissao: pick(existing.profissao, incoming.profissao, emptyStr),
+    email: normEmail(existing.email) || normEmail(incoming.email),
+    telefone: normPhone(existing.telefone) ? existing.telefone : incoming.telefone,
+    aderencia: Math.max(existing.aderencia, incoming.aderencia),
+    stage: stageOrder.indexOf(incoming.stage) > stageOrder.indexOf(existing.stage) ? incoming.stage : existing.stage,
+    ultima: "agora",
+  };
+  // Recompute score/temp from merged data
+  merged.score = autoScore(merged.renda, merged.perfil, merged.aderencia);
+  merged.temp = autoTemp(merged.score);
+  return merged;
+}
 
 const initialLeads: Lead[] = [
   { id: "L-1042", nome: "Ana Pereira", origem: "Instagram", bairro: "Campo Grande", emp: "Vista Park", tipologia: "2Q + Suíte", renda: 7.8, profissao: "Servidora Pública", score: 92, temp: "quente", perfil: "familiar", stage: "Visita", ultima: "há 2h", aderencia: 94 },
@@ -226,6 +266,8 @@ function parseLeadsCsv(text: string): Lead[] {
       stage: "Novo",
       ultima: "agora",
       aderencia,
+      email: ix.email >= 0 ? cols[ix.email] : "",
+      telefone: ix.telefone >= 0 ? cols[ix.telefone] : "",
     });
   }
   return out;
@@ -279,10 +321,53 @@ function LeadsPage() {
       toast.error("Nenhum lead válido encontrado no arquivo.");
       return;
     }
-    setLeads((prev) => [...preview, ...prev]);
-    setSelected(preview[0]);
-    toast.success(`${preview.length} leads importados`, {
-      description: "Score, temperatura e aderência calculados automaticamente.",
+
+    // 1) Dedupe within preview itself (later rows merge into earlier)
+    const seen = new Map<string, Lead>(); // key -> lead in deduped list
+    const deduped: Lead[] = [];
+    let intraDupes = 0;
+    for (const l of preview) {
+      const keys = leadKeys(l);
+      const hit = keys.map((k) => seen.get(k)).find(Boolean);
+      if (hit) {
+        const merged = mergeLead(hit, l);
+        Object.assign(hit, merged);
+        intraDupes++;
+      } else {
+        deduped.push(l);
+        keys.forEach((k) => seen.set(k, l));
+      }
+    }
+
+    // 2) Merge against existing leads
+    let mergedCount = 0;
+    let newCount = 0;
+    setLeads((prev) => {
+      const index = new Map<string, number>();
+      prev.forEach((l, i) => leadKeys(l).forEach((k) => index.set(k, i)));
+      const next = [...prev];
+      const fresh: Lead[] = [];
+      for (const inc of deduped) {
+        const keys = leadKeys(inc);
+        const hitIdx = keys.map((k) => index.get(k)).find((v) => v !== undefined);
+        if (hitIdx !== undefined) {
+          next[hitIdx] = mergeLead(next[hitIdx], inc);
+          mergedCount++;
+        } else {
+          fresh.push(inc);
+          newCount++;
+          keys.forEach((k) => index.set(k, next.length + fresh.length - 1));
+        }
+      }
+      return [...fresh, ...next];
+    });
+
+    setSelected(deduped[0]);
+    const parts = [`${newCount} novos`];
+    if (mergedCount) parts.push(`${mergedCount} mesclados`);
+    if (intraDupes) parts.push(`${intraDupes} duplicatas no arquivo`);
+    toast.success(`Importação concluída — ${parts.join(" · ")}`, {
+      description: "Dedupe por email/telefone. Score e estágio preservados/atualizados.",
     });
     setImportOpen(false);
     setCsvText("");
