@@ -87,9 +87,32 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Centralize análises territoriais, leads, empreendimentos e scoring estratégico em uma plataforma enterprise.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "Motor de Inteligência" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "Motor de Inteligência",
+          url: "https://intelidata-iacapital.lovable.app",
+          description:
+            "Plataforma SaaS de inteligência territorial, comportamental e mercadológica para o mercado imobiliário do Rio de Janeiro.",
+        }),
+      },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "Motor de Inteligência",
+          url: "https://intelidata-iacapital.lovable.app",
+        }),
+      },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
