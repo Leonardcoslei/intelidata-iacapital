@@ -208,6 +208,7 @@ function TerritoriosPage() {
       />
 
       {/* ============ KPIs ============ */}
+      <h2 className="sr-only">Indicadores territoriais</h2>
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         {[
           { l: "Territórios", v: kpis.monitoradas, s: "monitorados" },
@@ -264,6 +265,7 @@ function TerritoriosPage() {
       </Card>
 
       {/* ============ TABELA INTELIGENTE ============ */}
+      <h2 className="sr-only">Ranking territorial</h2>
       <Card className="mt-5 glass border-border/60 overflow-hidden">
         <div className="px-5 py-3 border-b border-border/60 flex items-center justify-between">
           <h3 className="font-semibold text-sm">Ranking territorial</h3>
@@ -330,6 +332,7 @@ function TerritoriosPage() {
       </Card>
 
       {/* ============ HEATMAP ============ */}
+      <h2 className="sr-only">Heatmap multifatorial</h2>
       <Card className="mt-5 glass border-border/60 overflow-hidden">
         <div className="px-5 py-3 border-b border-border/60 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -372,6 +375,7 @@ function TerritoriosPage() {
       </Card>
 
       {/* ============ COMPARATIVO + EVOLUÇÃO ============ */}
+      <h2 className="sr-only">Comparativo e evolução temporal</h2>
       <div className="mt-5 grid grid-cols-1 lg:grid-cols-5 gap-5">
         <Card className="lg:col-span-3 glass border-border/60 overflow-hidden">
           <div className="px-5 py-3 border-b border-border/60 flex items-center justify-between">

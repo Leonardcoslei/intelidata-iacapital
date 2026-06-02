@@ -4,6 +4,24 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Activity, MapPin, Brain, BarChart3 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "Motor de Inteligência — Inteligência territorial imobiliária RJ" },
+      {
+        name: "description",
+        content:
+          "Plataforma analítica para o mercado imobiliário do Rio: territórios, leads, absorção, scoring e narrativas em um só lugar.",
+      },
+      { property: "og:title", content: "Motor de Inteligência — Inteligência territorial RJ" },
+      {
+        property: "og:description",
+        content:
+          "Analítica territorial, scoring de leads, absorção e narrativas de mercado para o imobiliário do Rio.",
+      },
+      { property: "og:url", content: "/" },
+    ],
+    links: [{ rel: "canonical", href: "/" }],
+  }),
   component: Landing,
 });
 
@@ -64,7 +82,9 @@ function Landing() {
           </div>
         </div>
 
-        <div className="mt-24 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <section aria-labelledby="recursos-heading" className="mt-24">
+          <h2 id="recursos-heading" className="sr-only">Recursos da plataforma</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
             { icon: MapPin, title: "Inteligência territorial", desc: "Heatmaps, ranking de regiões e leitura urbana em tempo real." },
             { icon: BarChart3, title: "Absorção & scoring", desc: "Score de liquidez, valorização e risco por empreendimento." },
@@ -76,7 +96,8 @@ function Landing() {
               <p className="mt-1 text-sm text-muted-foreground">{f.desc}</p>
             </div>
           ))}
-        </div>
+          </div>
+        </section>
       </main>
     </div>
   );

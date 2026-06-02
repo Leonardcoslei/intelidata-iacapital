@@ -1,0 +1,11 @@
+# Motor de Inteligência
+
+> Plataforma SaaS de inteligência territorial, comportamental e mercadológica para o mercado imobiliário do Rio de Janeiro.
+
+O Motor de Inteligência centraliza análises de territórios, scoring de leads, absorção imobiliária, concorrência e narrativas de mercado em uma única plataforma analítica enterprise.
+
+## Pages
+
+- [Home](/): Visão geral da plataforma e principais recursos.
+- [Entrar](/login): Acesso à plataforma para usuários cadastrados.
+- [Criar conta](/signup): Cadastro de novos usuários.

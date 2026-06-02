@@ -33,8 +33,12 @@ function AuthenticatedLayout() {
               <Input placeholder="Buscar bairro, empreendimento, lead..." className="pl-8 h-9 bg-muted/50 border-border" />
             </div>
             <div className="ml-auto flex items-center gap-2">
-              <button className="relative h-9 w-9 inline-flex items-center justify-center rounded-md hover:bg-muted transition-colors">
-                <Bell className="h-4 w-4" />
+              <button
+                type="button"
+                aria-label="Ver notificações"
+                className="relative h-9 w-9 inline-flex items-center justify-center rounded-md hover:bg-muted transition-colors"
+              >
+                <Bell className="h-4 w-4" aria-hidden="true" />
                 <span className="absolute top-2 right-2 h-1.5 w-1.5 rounded-full bg-gold" />
               </button>
             </div>
