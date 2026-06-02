@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /territorios
+Disallow: /leads
+Disallow: /empreendimentos
+Disallow: /inteligencia
+Disallow: /relatorios
+Disallow: /configuracoes
+
+Sitemap: https://intelidata-iacapital.lovable.app/sitemap.xml
