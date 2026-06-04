@@ -26,6 +26,25 @@ export const Route = createFileRoute("/login")({
       { property: "og:url", content: "/login" },
     ],
     links: [{ rel: "canonical", href: "/login" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          name: "Entrar — Motor de Inteligência",
+          description:
+            "Acesse sua central de inteligência territorial do mercado imobiliário do Rio de Janeiro.",
+          url: "https://intelidata-iacapital.lovable.app/login",
+          inLanguage: "pt-BR",
+          isPartOf: {
+            "@type": "WebSite",
+            name: "Motor de Inteligência",
+            url: "https://intelidata-iacapital.lovable.app",
+          },
+        }),
+      },
+    ],
   }),
   component: LoginPage,
 });
