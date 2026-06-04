@@ -27,6 +27,25 @@ export const Route = createFileRoute("/signup")({
       { property: "og:url", content: "/signup" },
     ],
     links: [{ rel: "canonical", href: "/signup" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          name: "Criar conta — Motor de Inteligência",
+          description:
+            "Crie sua conta e acesse análises territoriais, scoring de leads e absorção do mercado imobiliário do Rio.",
+          url: "https://intelidata-iacapital.lovable.app/signup",
+          inLanguage: "pt-BR",
+          isPartOf: {
+            "@type": "WebSite",
+            name: "Motor de Inteligência",
+            url: "https://intelidata-iacapital.lovable.app",
+          },
+        }),
+      },
+    ],
   }),
   component: SignupPage,
 });

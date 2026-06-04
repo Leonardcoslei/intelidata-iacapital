@@ -21,6 +21,58 @@ export const Route = createFileRoute("/")({
       { property: "og:url", content: "/" },
     ],
     links: [{ rel: "canonical", href: "/" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          name: "Motor de Inteligência — Inteligência territorial imobiliária RJ",
+          description:
+            "Plataforma analítica para o mercado imobiliário do Rio: territórios, leads, absorção, scoring e narrativas em um só lugar.",
+          url: "https://intelidata-iacapital.lovable.app/",
+          inLanguage: "pt-BR",
+          isPartOf: {
+            "@type": "WebSite",
+            name: "Motor de Inteligência",
+            url: "https://intelidata-iacapital.lovable.app",
+          },
+        }),
+      },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: [
+            {
+              "@type": "Question",
+              name: "O que é o Motor de Inteligência?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "Uma plataforma SaaS de inteligência territorial, comportamental e mercadológica para o mercado imobiliário do Rio de Janeiro.",
+              },
+            },
+            {
+              "@type": "Question",
+              name: "Quais análises a plataforma oferece?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "Heatmaps territoriais, ranking de regiões, score de liquidez e valorização, scoring de leads e narrativas de mercado geradas por IA.",
+              },
+            },
+            {
+              "@type": "Question",
+              name: "Para qual mercado a plataforma é indicada?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "Incorporadoras, imobiliárias e investidores que atuam no mercado imobiliário do Rio de Janeiro.",
+              },
+            },
+          ],
+        }),
+      },
+    ],
   }),
   component: Landing,
 });
