@@ -80,7 +80,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "Plataforma SaaS de inteligência territorial, comportamental e mercadológica para o mercado imobiliário do Rio de Janeiro.",
       },
-      { property: "og:title", content: "Motor de Inteligência" },
+      { property: "og:title", content: "Motor de Inteligência — Inteligência territorial imobiliária" },
       {
         property: "og:description",
         content:
@@ -89,6 +89,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: "Motor de Inteligência" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Motor de Inteligência — Inteligência territorial imobiliária" },
+      { name: "description", content: "Smart Real Estate Insights provides AI-driven market analysis for real estate." },
+      { property: "og:description", content: "Smart Real Estate Insights provides AI-driven market analysis for real estate." },
+      { name: "twitter:description", content: "Smart Real Estate Insights provides AI-driven market analysis for real estate." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/c2b3705d-f6ef-4faa-9824-aacee6e33846" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/c2b3705d-f6ef-4faa-9824-aacee6e33846" },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
     scripts: [
