@@ -83,7 +83,7 @@
 3. Leonardo roda `git pull` + `npm run dev` no PowerShell
 4. Visualização em http://localhost:8080
 
-**Token GitHub (válido 30 dias):** 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
+**Token GitHub (válido 30 dias):** [TOKEN_GITHUB — gerar novo a cada sessão]
 
 ---
 
