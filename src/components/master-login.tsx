@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useRouter } from "@tanstack/react-router";
 import { Activity, Lock, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,13 +8,16 @@ import { toast } from "sonner";
 
 export function MasterLogin() {
   const { login } = useMasterAuth();
+  const router = useRouter();
   const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
   const [shaking, setShaking] = useState(false);
 
   const handleLogin = () => {
     const ok = login(password);
-    if (!ok) {
+    if (ok) {
+      router.navigate({ to: "/dashboard" });
+    } else {
       toast.error("Senha incorreta.");
       setShaking(true);
       setTimeout(() => setShaking(false), 500);
