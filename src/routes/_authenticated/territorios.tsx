@@ -2,6 +2,7 @@ import { Fragment } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/page-header";
+import { DataImportModal } from "@/components/data-import-modal";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -43,6 +44,7 @@ import {
   Search,
   Sparkles,
   TrendingUp,
+  Upload,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/territorios")({
@@ -154,6 +156,7 @@ function TerritoriosPage() {
   const [busca, setBusca] = useState("");
   const [metrica, setMetrica] = useState<(typeof indicadores)[number]["key"]>("score");
   const [comparar, setComparar] = useState<string[]>(["Porto Maravilha", "Niterói", "Campo Grande"]);
+  const [importOpen, setImportOpen] = useState(false);
 
   const filtrados = useMemo(() => {
     return territorios
@@ -205,6 +208,18 @@ function TerritoriosPage() {
       <PageHeader
         title="Inteligência territorial"
         subtitle="Ranking, score multifatorial e leitura urbana das regiões monitoradas no Rio de Janeiro."
+        actions={
+          <Button size="sm" variant="outline" className="gap-1.5 border-border/60"
+            onClick={() => setImportOpen(true)}>
+            <Upload className="h-4 w-4" /> Importar bairros
+          </Button>
+        }
+      />
+      <DataImportModal
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        target="bairros"
+        onImport={() => { setImportOpen(false); }}
       />
 
       {/* ============ KPIs ============ */}

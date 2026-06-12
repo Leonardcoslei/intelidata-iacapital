@@ -9,6 +9,8 @@ import {
 } from "@tanstack/react-router";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/hooks/use-auth";
+import { MasterAuthProvider, useMasterAuth } from "@/hooks/use-master-auth";
+import { MasterLogin } from "@/components/master-login";
 
 import appCss from "../styles.css?url";
 
@@ -140,15 +142,25 @@ function RootShell({ children }: { children: React.ReactNode }) {
   );
 }
 
+function AppGate() {
+  const { isAuthenticated } = useMasterAuth();
+  if (!isAuthenticated) return <MasterLogin />;
+  return (
+    <AuthProvider>
+      <Outlet />
+    </AuthProvider>
+  );
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Outlet />
+      <MasterAuthProvider>
+        <AppGate />
         <Toaster richColors theme="dark" position="top-right" />
-      </AuthProvider>
+      </MasterAuthProvider>
     </QueryClientProvider>
   );
 }

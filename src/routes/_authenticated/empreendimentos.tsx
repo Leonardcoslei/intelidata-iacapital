@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
+import { DataImportModal } from "@/components/data-import-modal";
 import { PageHeader } from "@/components/page-header";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +23,7 @@ import {
   Building2, MapPin, TrendingUp, Search, Filter,
   ArrowUpRight, ArrowDownRight, Layers, Target,
   Home, ChevronRight, Star, AlertTriangle, CheckCircle2,
-  Users, BarChart3, Zap, Shield, Eye,
+  Users, BarChart3, Zap, Shield, Eye, Upload,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/empreendimentos")({
@@ -691,6 +692,7 @@ function EmpreendimentosPage() {
   const [corpFiltro, setCorpFiltro] = useState("todas");
   const [selected, setSelected] = useState<Empreendimento | null>(null);
   const [comparar, setComparar] = useState<string[]>([]);
+  const [importOpen, setImportOpen] = useState(false);
 
   const curyEmps = empreendimentos.filter((e) => e.incorporadora === "Cury");
   const concEmps = empreendimentos.filter((e) => e.incorporadora !== "Cury");
@@ -748,8 +750,18 @@ function EmpreendimentosPage() {
                 Limpar comparação ({comparar.length})
               </Button>
             )}
+            <Button size="sm" variant="outline" className="gap-1.5 border-border/60"
+              onClick={() => setImportOpen(true)}>
+              <Upload className="h-4 w-4" /> Importar dados
+            </Button>
           </div>
         }
+      />
+      <DataImportModal
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        target="empreendimentos"
+        onImport={() => { setImportOpen(false); }}
       />
 
       {/* KPIs */}
