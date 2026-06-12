@@ -143,6 +143,8 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function AppGate() {
+  const { isAuthenticated } = useMasterAuth();
+  if (!isAuthenticated) return <MasterLogin />;
   return (
     <AuthProvider>
       <Outlet />
