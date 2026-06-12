@@ -2,6 +2,8 @@ import { createFileRoute, Outlet, Navigate } from "@tanstack/react-router";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { useAuth } from "@/hooks/use-auth";
+import { useMasterAuth } from "@/hooks/use-master-auth";
+import { MasterLogin } from "@/components/master-login";
 import { Loader2, Bell, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
@@ -11,6 +13,10 @@ export const Route = createFileRoute("/_authenticated")({
 
 function AuthenticatedLayout() {
   const { user, loading } = useAuth();
+  const { isAuthenticated } = useMasterAuth();
+
+  // Gate senha mestre — bloqueia só a área interna
+  if (!isAuthenticated) return <MasterLogin />;
 
   if (loading) {
     return (
