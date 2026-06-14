@@ -2,10 +2,6 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-// ============================================================
-// TIPOS baseados no schema real do banco
-// ============================================================
-
 export interface Bairro {
   id: string;
   nome: string;
@@ -19,9 +15,6 @@ export interface Bairro {
   liquidez: string | null;
   obs: string | null;
   ativo: boolean;
-  criado_em: string;
-  atualizado_em: string;
-  // campos da view
   total_leads?: number;
   total_empreendimentos?: number;
   absorcao_media?: number;
@@ -41,18 +34,12 @@ export interface Empreendimento {
   vso_pct: number | null;
   total_unidades: number | null;
   unidades_disp: number | null;
-  tipologias: unknown;
   data_lancamento: string | null;
   data_entrega: string | null;
   status: string | null;
   tipo: string | null;
   obs: string | null;
   ativo: boolean;
-  criado_em: string;
-  atualizado_em: string;
-  // campos da view
-  dias_para_entrega?: number;
-  absorcao_calculada?: number;
 }
 
 export interface Lead {
@@ -63,26 +50,14 @@ export interface Lead {
   bairro_id: string | null;
   bairro_nome: string | null;
   interesse: string | null;
-  tipologia_int: string | null;
-  faixa_renda: number | null;
   score: number | null;
   temperatura: string | null;
   status: string | null;
-  canal_origem: string | null;
-  empreendimento_id: string | null;
-  obs: string | null;
   ativo: boolean;
-  criado_em: string;
-  atualizado_em: string;
-  // campos da view
-  bairro_label?: string;
-  bairro_zona?: string;
-  empreendimento_label?: string;
-  dias_para_entrega?: number;
 }
 
 // ============================================================
-// HOOK: Bairros
+// HOOK: Bairros (via view pública motor_ranking)
 // ============================================================
 export function useBairros() {
   const [bairros, setBairros] = useState<Bairro[]>([]);
@@ -91,24 +66,14 @@ export function useBairros() {
   const fetch = useCallback(async () => {
     setLoading(true);
     const { data, error } = await supabase
-      .schema("motor" as never)
-      .from("v_ranking_territorial" as never)
+      .from("motor_ranking" as never)
       .select("*")
-      .order("score", { ascending: false });
+      .order("score" as never, { ascending: false });
 
     if (error) {
-      // fallback para tabela direta se view não existir
-      const { data: d2, error: e2 } = await supabase
-        .schema("motor" as never)
-        .from("bairros" as never)
-        .select("*")
-        .eq("ativo", true)
-        .is("deleted_at", null)
-        .order("score", { ascending: false });
-      if (e2) { toast.error("Erro ao carregar bairros."); }
-      else { setBairros((d2 as Bairro[]) || []); }
+      toast.error("Erro ao carregar bairros.");
     } else {
-      setBairros((data as Bairro[]) || []);
+      setBairros((data as unknown as Bairro[]) || []);
     }
     setLoading(false);
   }, []);
@@ -117,10 +82,9 @@ export function useBairros() {
 
   const deletar = async (id: string) => {
     const { error } = await supabase
-      .schema("motor" as never)
-      .from("bairros" as never)
+      .from("motor_bairros" as never)
       .update({ deleted_at: new Date().toISOString(), ativo: false } as never)
-      .eq("id", id);
+      .eq("id" as never, id);
     if (error) { toast.error("Erro ao excluir bairro."); return false; }
     toast.success("Bairro excluído.");
     await fetch();
@@ -129,10 +93,9 @@ export function useBairros() {
 
   const adicionar = async (bairro: Partial<Bairro>) => {
     const { error } = await supabase
-      .schema("motor" as never)
-      .from("bairros" as never)
+      .from("motor_bairros" as never)
       .insert(bairro as never);
-    if (error) { toast.error("Erro ao adicionar bairro: " + error.message); return false; }
+    if (error) { toast.error("Erro: " + error.message); return false; }
     toast.success("Bairro adicionado.");
     await fetch();
     return true;
@@ -151,23 +114,14 @@ export function useEmpreendimentos() {
   const fetch = useCallback(async () => {
     setLoading(true);
     const { data, error } = await supabase
-      .schema("motor" as never)
-      .from("v_empreendimentos" as never)
+      .from("motor_empreendimentos" as never)
       .select("*")
-      .order("nome");
+      .order("nome" as never);
 
     if (error) {
-      const { data: d2, error: e2 } = await supabase
-        .schema("motor" as never)
-        .from("empreendimentos" as never)
-        .select("*")
-        .eq("ativo", true)
-        .is("deleted_at", null)
-        .order("nome");
-      if (e2) { toast.error("Erro ao carregar empreendimentos."); }
-      else { setEmpreendimentos((d2 as Empreendimento[]) || []); }
+      toast.error("Erro ao carregar empreendimentos.");
     } else {
-      setEmpreendimentos((data as Empreendimento[]) || []);
+      setEmpreendimentos((data as unknown as Empreendimento[]) || []);
     }
     setLoading(false);
   }, []);
@@ -176,11 +130,10 @@ export function useEmpreendimentos() {
 
   const deletar = async (id: string) => {
     const { error } = await supabase
-      .schema("motor" as never)
-      .from("empreendimentos" as never)
+      .from("motor_empreendimentos" as never)
       .update({ deleted_at: new Date().toISOString(), ativo: false } as never)
-      .eq("id", id);
-    if (error) { toast.error("Erro ao excluir empreendimento."); return false; }
+      .eq("id" as never, id);
+    if (error) { toast.error("Erro ao excluir."); return false; }
     toast.success("Empreendimento excluído.");
     await fetch();
     return true;
@@ -199,23 +152,14 @@ export function useLeads() {
   const fetch = useCallback(async () => {
     setLoading(true);
     const { data, error } = await supabase
-      .schema("motor" as never)
-      .from("v_leads_ativos" as never)
+      .from("motor_leads" as never)
       .select("*")
-      .order("score", { ascending: false });
+      .order("score" as never, { ascending: false });
 
     if (error) {
-      const { data: d2, error: e2 } = await supabase
-        .schema("motor" as never)
-        .from("leads" as never)
-        .select("*")
-        .eq("ativo", true)
-        .is("deleted_at", null)
-        .order("score", { ascending: false });
-      if (e2) { toast.error("Erro ao carregar leads."); }
-      else { setLeads((d2 as Lead[]) || []); }
+      toast.error("Erro ao carregar leads.");
     } else {
-      setLeads((data as Lead[]) || []);
+      setLeads((data as unknown as Lead[]) || []);
     }
     setLoading(false);
   }, []);
@@ -224,11 +168,10 @@ export function useLeads() {
 
   const deletar = async (id: string) => {
     const { error } = await supabase
-      .schema("motor" as never)
-      .from("leads" as never)
+      .from("motor_leads" as never)
       .update({ deleted_at: new Date().toISOString(), ativo: false } as never)
-      .eq("id", id);
-    if (error) { toast.error("Erro ao excluir lead."); return false; }
+      .eq("id" as never, id);
+    if (error) { toast.error("Erro ao excluir."); return false; }
     toast.success("Lead excluído.");
     await fetch();
     return true;
@@ -253,22 +196,21 @@ export function useKpisDashboard() {
 
   useEffect(() => {
     async function load() {
-      const [{ count: leads }, { count: emp }, { count: bairros }, { data: stats }] =
-        await Promise.all([
-          supabase.schema("motor" as never).from("leads" as never).select("*", { count: "exact", head: true }).eq("ativo", true).is("deleted_at", null),
-          supabase.schema("motor" as never).from("empreendimentos" as never).select("*", { count: "exact", head: true }).eq("ativo", true).is("deleted_at", null),
-          supabase.schema("motor" as never).from("bairros" as never).select("*", { count: "exact", head: true }).eq("ativo", true).is("deleted_at", null),
-          supabase.schema("motor" as never).from("empreendimentos" as never).select("absorcao_pct,vso_pct,ticket_medio").eq("ativo", true).is("deleted_at", null),
-        ]);
+      const [r1, r2, r3, r4] = await Promise.all([
+        supabase.from("motor_leads" as never).select("*", { count: "exact", head: true } as never),
+        supabase.from("motor_empreendimentos" as never).select("*", { count: "exact", head: true } as never),
+        supabase.from("motor_bairros" as never).select("*", { count: "exact", head: true } as never),
+        supabase.from("motor_empreendimentos" as never).select("absorcao_pct,vso_pct,ticket_medio" as never),
+      ]);
 
-      const s = (stats as { absorcao_pct: number; vso_pct: number; ticket_medio: number }[]) || [];
+      const stats = (r4.data as unknown as { absorcao_pct: number; vso_pct: number; ticket_medio: number }[]) || [];
       const avg = (key: "absorcao_pct" | "vso_pct" | "ticket_medio") =>
-        s.length ? s.reduce((a, r) => a + (Number(r[key]) || 0), 0) / s.length : 0;
+        stats.length ? stats.reduce((a, r) => a + (Number(r[key]) || 0), 0) / stats.length : 0;
 
       setKpis({
-        totalLeads: leads || 0,
-        totalEmpreendimentos: emp || 0,
-        totalBairros: bairros || 0,
+        totalLeads: (r1 as unknown as { count: number }).count || 0,
+        totalEmpreendimentos: (r2 as unknown as { count: number }).count || 0,
+        totalBairros: (r3 as unknown as { count: number }).count || 0,
         absorcaoMedia: Number(avg("absorcao_pct").toFixed(1)),
         vsoMedio: Number(avg("vso_pct").toFixed(1)),
         ticketMedio: Number(avg("ticket_medio").toFixed(0)),
