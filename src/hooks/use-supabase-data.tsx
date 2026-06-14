@@ -66,7 +66,7 @@ export function useBairros() {
   const fetch = useCallback(async () => {
     setLoading(true);
     const { data, error } = await supabase
-      .from("motor_ranking" as never)
+      .from("bairros" as never)
       .select("*")
       .order("score" as never, { ascending: false });
 
@@ -82,7 +82,7 @@ export function useBairros() {
 
   const deletar = async (id: string) => {
     const { error } = await supabase
-      .from("motor_bairros" as never)
+      .from("bairros" as never)
       .update({ deleted_at: new Date().toISOString(), ativo: false } as never)
       .eq("id" as never, id);
     if (error) { toast.error("Erro ao excluir bairro."); return false; }
@@ -93,7 +93,7 @@ export function useBairros() {
 
   const adicionar = async (bairro: Partial<Bairro>) => {
     const { error } = await supabase
-      .from("motor_bairros" as never)
+      .from("bairros" as never)
       .insert(bairro as never);
     if (error) { toast.error("Erro: " + error.message); return false; }
     toast.success("Bairro adicionado.");
@@ -114,7 +114,7 @@ export function useEmpreendimentos() {
   const fetch = useCallback(async () => {
     setLoading(true);
     const { data, error } = await supabase
-      .from("motor_empreendimentos" as never)
+      .from("empreendimentos" as never)
       .select("*")
       .order("nome" as never);
 
@@ -130,7 +130,7 @@ export function useEmpreendimentos() {
 
   const deletar = async (id: string) => {
     const { error } = await supabase
-      .from("motor_empreendimentos" as never)
+      .from("empreendimentos" as never)
       .update({ deleted_at: new Date().toISOString(), ativo: false } as never)
       .eq("id" as never, id);
     if (error) { toast.error("Erro ao excluir."); return false; }
@@ -152,7 +152,7 @@ export function useLeads() {
   const fetch = useCallback(async () => {
     setLoading(true);
     const { data, error } = await supabase
-      .from("motor_leads" as never)
+      .from("leads" as never)
       .select("*")
       .order("score" as never, { ascending: false });
 
@@ -168,7 +168,7 @@ export function useLeads() {
 
   const deletar = async (id: string) => {
     const { error } = await supabase
-      .from("motor_leads" as never)
+      .from("leads" as never)
       .update({ deleted_at: new Date().toISOString(), ativo: false } as never)
       .eq("id" as never, id);
     if (error) { toast.error("Erro ao excluir."); return false; }
@@ -197,10 +197,10 @@ export function useKpisDashboard() {
   useEffect(() => {
     async function load() {
       const [r1, r2, r3, r4] = await Promise.all([
-        supabase.from("motor_leads" as never).select("*", { count: "exact", head: true } as never),
-        supabase.from("motor_empreendimentos" as never).select("*", { count: "exact", head: true } as never),
-        supabase.from("motor_bairros" as never).select("*", { count: "exact", head: true } as never),
-        supabase.from("motor_empreendimentos" as never).select("absorcao_pct,vso_pct,ticket_medio" as never),
+        supabase.from("leads" as never).select("*", { count: "exact", head: true } as never),
+        supabase.from("empreendimentos" as never).select("*", { count: "exact", head: true } as never),
+        supabase.from("bairros" as never).select("*", { count: "exact", head: true } as never),
+        supabase.from("empreendimentos" as never).select("absorcao_pct,vso_pct,ticket_medio" as never),
       ]);
 
       const stats = (r4.data as unknown as { absorcao_pct: number; vso_pct: number; ticket_medio: number }[]) || [];
