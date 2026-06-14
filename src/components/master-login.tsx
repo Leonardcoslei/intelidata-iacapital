@@ -7,7 +7,6 @@ import { toast } from "sonner";
 
 export function MasterLogin() {
   const { login } = useMasterAuth();
-  const router = useRouter();
   const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
   const [shaking, setShaking] = useState(false);
