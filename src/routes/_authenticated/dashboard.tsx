@@ -14,6 +14,7 @@ import {
   Sparkles,
   Calendar,
   Download,
+  RefreshCw,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -26,6 +27,7 @@ import {
   BarChart,
   Bar,
 } from "recharts";
+import { useKpisDashboard, useBairros } from "@/hooks/use-supabase-data";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardPage,
@@ -45,17 +47,6 @@ const absorptionData = [
   { m: "Out", v: 82, p: 73 }, { m: "Nov", v: 77, p: 75 }, { m: "Dez", v: 86, p: 78 },
 ];
 
-const regions = [
-  { name: "Campo Grande", score: 92, leads: 2843, abs: "78%" },
-  { name: "Santa Cruz", score: 88, leads: 2110, abs: "72%" },
-  { name: "Madureira", score: 85, leads: 1987, abs: "69%" },
-  { name: "Bangu", score: 81, leads: 1564, abs: "65%" },
-  { name: "Realengo", score: 78, leads: 1402, abs: "61%" },
-  { name: "Jacarepaguá", score: 76, leads: 1298, abs: "58%" },
-];
-
-const ranking = regions.slice().sort((a, b) => b.score - a.score);
-
 const heatCells = Array.from({ length: 84 }, (_, i) => {
   const intensity = (Math.sin(i * 0.37) + Math.cos(i * 0.21) + 2) / 4;
   return Math.min(1, Math.max(0.05, intensity));
@@ -74,7 +65,7 @@ const timeline = [
   { time: "2 dias", title: "Alerta de risco resolvido", desc: "Saturação narrativa em Santa Cruz" },
 ];
 
-const barData = ranking.map((r) => ({ name: r.name.split(" ")[0], score: r.score }));
+// barData é gerado dinamicamente no componente
 
 function KpiCard({ kpi }: { kpi: typeof kpis[number] }) {
   const Icon = kpi.icon;
@@ -96,6 +87,23 @@ function KpiCard({ kpi }: { kpi: typeof kpis[number] }) {
 }
 
 function DashboardPage() {
+  const { kpis: kpiData, loading: kpiLoading } = useKpisDashboard();
+  const { bairros, loading: bairrosLoading, refetch } = useBairros();
+
+  const kpis = [
+    { label: "Leads ativos",      value: kpiLoading ? "..." : kpiData.totalLeads.toLocaleString("pt-BR"),   delta: 0, icon: Users },
+    { label: "Empreendimentos",   value: kpiLoading ? "..." : String(kpiData.totalEmpreendimentos),          delta: 0, icon: Building2 },
+    { label: "Absorção média",    value: kpiLoading ? "..." : `${kpiData.absorcaoMedia}%`,                   delta: 0, icon: TrendingUp },
+    { label: "Ticket médio",      value: kpiLoading ? "..." : `R$ ${(kpiData.ticketMedio/1000).toFixed(0)}k`,delta: 0, icon: Sparkles },
+  ];
+
+  const ranking = [...bairros].slice(0, 6).map(b => ({
+    name: b.nome,
+    score: Number(b.score),
+    leads: b.leads_pot || 0,
+    abs: `${b.absorcao_media || 0}%`,
+  }));
+
   return (
     <div className="p-6 lg:p-8 max-w-[1600px] mx-auto">
       <PageHeader
@@ -103,7 +111,10 @@ function DashboardPage() {
         subtitle="Visão consolidada de territórios, leads, empreendimentos e absorção — Rio de Janeiro."
         actions={
           <>
-            <Button variant="outline" size="sm"><Calendar className="mr-2 h-4 w-4" />Últimos 30 dias</Button>
+            <Button variant="outline" size="sm" onClick={() => refetch()} disabled={kpiLoading || bairrosLoading}>
+              <RefreshCw className={`mr-2 h-4 w-4 ${(kpiLoading || bairrosLoading) ? "animate-spin" : ""}`} />
+              Atualizar
+            </Button>
             <Button size="sm" className="bg-gold text-gold-foreground hover:bg-gold/90">
               <Download className="mr-2 h-4 w-4" />Exportar
             </Button>
@@ -168,7 +179,7 @@ function DashboardPage() {
           </div>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={barData} layout="vertical" margin={{ left: 8 }}>
+              <BarChart data={ranking.map(r => ({ name: r.name.split(" ")[0], score: r.score }))} layout="vertical" margin={{ left: 8 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 0.06)" horizontal={false} />
                 <XAxis type="number" stroke="oklch(0.68 0.025 230)" fontSize={12} domain={[0, 100]} />
                 <YAxis type="category" dataKey="name" stroke="oklch(0.68 0.025 230)" fontSize={11} width={80} />
@@ -248,7 +259,7 @@ function DashboardPage() {
         <Card className="xl:col-span-2 p-5 glass border-border/60">
           <h3 className="font-semibold mb-4">Regiões em destaque</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {regions.map((r) => (
+            {ranking.map((r) => (
               <div key={r.name} className="rounded-lg border border-border/60 p-4 hover:border-gold/40 hover:bg-muted/30 transition-all">
                 <div className="flex items-center justify-between">
                   <div className="text-sm font-medium">{r.name}</div>
